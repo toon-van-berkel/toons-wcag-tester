@@ -1,9 +1,18 @@
-import type { Locator, Page } from "playwright";
+import type {
+    Frame,
+    Locator,
+    Page
+} from "playwright";
 
-export type DOMQueryScope = Page | Locator;
+export type DOMQueryRoot = Page | Frame;
+
+export type DOMQueryScope =
+    | Page
+    | Frame
+    | Locator;
 
 export interface DOMQueryOptions {
-    scope?: Locator;
+    scope?: DOMQueryScope;
     limit?: number;
 }
 

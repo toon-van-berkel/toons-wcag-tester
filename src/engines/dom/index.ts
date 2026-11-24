@@ -5,3 +5,4 @@ export * from "./attributes.js";
 export * from "./visibility.js";
 export * from "./styles.js";
 export * from "./context.js";
+export * from "./frame.js";

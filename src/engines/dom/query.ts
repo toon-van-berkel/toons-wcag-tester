@@ -1,14 +1,15 @@
-import type { Locator, Page } from "playwright";
+import type { Locator } from "playwright";
 
 import type {
     DOMQueryOptions,
     DOMQueryResult,
+    DOMQueryRoot,
     DOMQueryScope
 } from "./types.js";
 
 export class DOMQueryEngine {
     constructor(
-        private readonly page: Page
+        private readonly root: DOMQueryRoot
     ) {}
 
     private createLocator(
@@ -21,7 +22,7 @@ export class DOMQueryEngine {
             );
         }
 
-        const root = scope ?? this.page;
+        const root = scope ?? this.root;
 
         return root.locator(`css=${selector}`);
     }
@@ -59,7 +60,11 @@ export class DOMQueryEngine {
 
         const elements: Locator[] = [];
 
-        for (let index = 0; index < returnedCount; index++) {
+        for (
+            let index = 0;
+            index < returnedCount;
+            index++
+        ) {
             elements.push(
                 locator.nth(index)
             );
