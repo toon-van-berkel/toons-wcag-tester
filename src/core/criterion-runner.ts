@@ -8,13 +8,13 @@ import type {
     RuleResult
 } from "../types/index.js";
 
-import {
-    getRulesByCriterion
-} from "../registry/index.js";
+import { getRulesByCriterion } from "../registry/index.js";
+import { isCriterionEnabled } from "../config/index.js";
 
 import {
-    isCriterionEnabled
-} from "../config/index.js";
+    evaluateCoverage,
+    applyCoverageStatus
+} from "./coverage.js";
 
 import { runRule } from "./rule-runner.js";
 import { aggregateStatus } from "./status.js";
@@ -45,12 +45,25 @@ export async function runCriterion(
         );
     }
 
+    const coverage = evaluateCoverage(
+        criterion,
+        results
+    );
+
+    const aggregatedStatus = aggregateStatus(
+        results.map(result => result.status)
+    );
+
+    const status = applyCoverageStatus(
+        aggregatedStatus,
+        coverage
+    );
+
     return {
         criterionId: criterion.id,
-        status: aggregateStatus(
-            results.map(result => result.status)
-        ),
+        status,
         rules: results,
+        coverage,
         durationMs: performance.now() - start
     };
 }

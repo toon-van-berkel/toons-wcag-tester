@@ -4,28 +4,42 @@ import type {
 } from "./wcag.js";
 
 import type {
-    TestStatus,
     TestMode,
+    TestStatus,
     TestSeverity
 } from "./testing.js";
 
-export interface TestEvidence {
-    url?: string;
-    selector?: string;
-    html?: string;
-    screenshot?: string;
-    expected?: string;
-    actual?: string;
+import type { TestEvidence } from "./evidence.js";
+import type { ReviewItem } from "./review.js";
+import type { CriterionCoverage } from "./coverage.js";
+
+export type { TestEvidence } from "./evidence.js";
+
+export interface TestFinding {
+    id: string;
+    status: TestStatus;
+    severity?: TestSeverity;
+    message: string;
+    evidence: TestEvidence[];
+    reviewIds?: string[];
+    recommendation?: string;
 }
 
 export interface RuleResult {
     ruleId: string;
     criterionId: WCAGCriterionId;
+
     mode: TestMode;
     status: TestStatus;
+
     severity?: TestSeverity;
     message: string;
+
     evidence: TestEvidence[];
+
+    findings?: TestFinding[];
+    reviews?: ReviewItem[];
+
     durationMs: number;
 }
 
@@ -33,6 +47,9 @@ export interface CriterionResult {
     criterionId: WCAGCriterionId;
     status: TestStatus;
     rules: RuleResult[];
+
+    coverage?: CriterionCoverage;
+
     durationMs: number;
 }
 
