@@ -1,0 +1,43 @@
+<svg width="800" height="800" viewBox="-16 -16 832 832" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">Toon's WCAG Tester</title>
+  <style>
+    .logo { animation: logo-cycle 5s linear infinite; }
+    .blue, .green {
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: 0;
+    }
+    .blue { animation: blue-draw 5s linear infinite, blue-pulse 5s ease-in-out infinite; }
+    .green { animation: green-draw 5s linear infinite, green-pulse 5s ease-in-out infinite; }
+
+    @keyframes blue-draw {
+      0% { stroke-dashoffset: 1.01; opacity: 0; }
+      0.2% { stroke-dashoffset: 1; opacity: 1; }
+      25%, 100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+    @keyframes blue-pulse {
+      0%, 25%, 38%, 100% { stroke-width: 91; }
+      31.5% { stroke-width: 112; }
+    }
+    @keyframes green-draw {
+      0%, 40% { stroke-dashoffset: 1.01; opacity: 0; }
+      40.2% { stroke-dashoffset: 1; opacity: 1; }
+      60%, 100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+    @keyframes green-pulse {
+      0%, 60%, 73%, 100% { stroke-width: 91; }
+      66.5% { stroke-width: 112; }
+    }
+    @keyframes logo-cycle {
+      0%, 86% { opacity: 1; }
+      97%, 100% { opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .logo, .blue, .green { animation: none; opacity: 1; }
+      .blue, .green { stroke-dasharray: none; stroke-dashoffset: 0; stroke-width: 91; }
+    }
+  </style>
+  <g class="logo" stroke-width="91" stroke-linecap="round" stroke-linejoin="round">
+    <path class="blue" pathLength="1" d="M45.5 182L184.5 601L354 351.5L499.5 617L754.5 182" stroke="#689AF9"/>
+    <path class="green" pathLength="1" d="M354 351.5L499.5 617L754.5 182" stroke="#4ADE9F"/>
+  </g>
+</svg>
