@@ -1,24 +1,19 @@
-import {
-    loadConfig
-} from "../config/index.js";
+import { loadConfig } from "../config/index.js";
+
+import { runAudit, runCategory } from "../core/index.js";
 
 import {
-    runAudit,
-    runCategory
-} from "../core/index.js";
-
-import {
-    writeJsonReport,
-    printAuditResult,
-    printCategoryResult
+  writeJsonReport,
+  printAuditResult,
+  printCategoryResult,
 } from "../reporting/index.js";
 
-import {
-    parseArguments
-} from "./arguments.js";
+import { parseArguments } from "./arguments.js";
+
+import { BrowserEngine } from "../engines/index.js";
 
 function printHelp(): void {
-    console.log(`
+  console.log(`
 Toon's WCAG Tester
 WCAG 2.2 Accessibility Testing Framework
 
@@ -41,85 +36,94 @@ Examples:
 }
 
 export async function runCLI(): Promise<number> {
-    const args = parseArguments();
+  const args = parseArguments();
 
-    if (args.help) {
-        printHelp();
-        return 0;
-    }
+  if (args.help) {
+    printHelp();
+    return 0;
+  }
 
-    if (!args.url) {
-        printHelp();
-        console.error("Missing required argument: --url");
-        return 2;
-    }
+  if (!args.url) {
+    printHelp();
+    console.error("Missing required argument: --url");
+    return 2;
+  }
 
-    const config = loadConfig(args.config);
+  const config = loadConfig(args.config);
 
-    if (args.target !== undefined) {
-        config.target = args.target;
-    }
+  if (args.target !== undefined) {
+    config.target = args.target;
+  }
+
+  const browser = new BrowserEngine();
+
+  try {
+    const session = await browser.start();
+
+    console.log("Starting browser...");
+    console.log(`Opening website: ${args.url}`);
+
+    const navigation = await browser.navigate(args.url);
+
+    console.log(`Page title: ${navigation.title}`);
+    console.log(`Final URL: ${navigation.finalUrl}`);
+    console.log(`HTTP status: ${navigation.statusCode}`);
+    console.log(`Navigation duration: ${navigation.durationMs.toFixed(2)} ms`);
 
     const context = {
-        url: args.url
+      url: navigation.finalUrl,
+      page: session.page,
     };
 
     if (args.category) {
-        const result = await runCategory(
-            args.category,
-            context,
-            config
-        );
+      const result = await runCategory(args.category, context, config);
 
-        printCategoryResult(result);
+      printCategoryResult(result);
 
-        const filepath = writeJsonReport(
-            result,
-            args.output,
-            `${args.category}.json`
-        );
+      const filepath = writeJsonReport(
+        result,
+        args.output,
+        `${args.category}.json`,
+      );
 
-        console.log(`Report saved: ${filepath}`);
+      console.log(`Report saved: ${filepath}`);
 
-        return getExitCode(result.status);
+      return getExitCode(result.status);
     }
 
-    const result = await runAudit(
-        context,
-        config
-    );
+    const result = await runAudit(context, config);
 
     printAuditResult(result);
 
-    const filepath = writeJsonReport(
-        result,
-        args.output
-    );
+    const filepath = writeJsonReport(result, args.output);
 
     console.log(`Report saved: ${filepath}`);
 
     return getExitCode(result.status);
+  } finally {
+    await browser.close();
+  }
 }
 
 function getExitCode(status: string): number {
-    switch (status) {
-        case "pass":
-        case "not_applicable":
-        case "disabled":
-            return 0;
+  switch (status) {
+    case "pass":
+    case "not_applicable":
+    case "disabled":
+      return 0;
 
-        case "fail":
-            return 1;
+    case "fail":
+      return 1;
 
-        case "error":
-            return 2;
+    case "error":
+      return 2;
 
-        case "warning":
-        case "review_required":
-        case "not_tested":
-            return 3;
+    case "warning":
+    case "review_required":
+    case "not_tested":
+      return 3;
 
-        default:
-            return 2;
-    }
+    default:
+      return 2;
+  }
 }

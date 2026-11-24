@@ -137,6 +137,10 @@ jobs:
         working-directory: tester
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright Chromium
+        working-directory: tester
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Build tester
         working-directory: tester
         run: pnpm build
