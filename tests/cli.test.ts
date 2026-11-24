@@ -72,7 +72,7 @@ describe("CLI Arguments", () => {
 
     it("rejects invalid URLs", () => {
         expect(() => {
-            parseArguments(["--url", "invalid"]);
+            parseArguments(["--url", "https://"]);
         }).toThrow();
     });
 
