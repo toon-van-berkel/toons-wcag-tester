@@ -76,6 +76,12 @@ describe("CLI Arguments", () => {
         }).toThrow();
     });
 
+    it("supports URLs without a protocol", () => {
+        expect(
+            parseArguments(["--url", "toonvb.com"]).url
+        ).toBe("https://toonvb.com/");
+    });
+
     it("rejects unsupported protocols", () => {
         expect(() => {
             parseArguments([

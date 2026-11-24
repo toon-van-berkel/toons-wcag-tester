@@ -59,7 +59,13 @@ export function parseArguments(
     };
 
     if (values.url !== undefined) {
-        const url = new URL(values.url);
+        const input = values.url.trim();
+
+        const normalizedUrl = /^[a-z][a-z\d+.-]*:/i.test(input)
+            ? input
+            : `https://${input}`;
+
+        const url = new URL(normalizedUrl);
 
         if (!["http:", "https:"].includes(url.protocol)) {
             throw new Error("Only HTTP and HTTPS URLs are supported.");
