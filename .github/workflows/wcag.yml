@@ -1,0 +1,274 @@
+name: WCAG 2.2 Accessibility Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Website URL
+        required: true
+        type: string
+
+      config-path:
+        description: Optional WCAG configuration file
+        required: false
+        type: string
+        default: ""
+
+      tester-ref:
+        description: Tester repository version
+        required: false
+        type: string
+        default: main
+
+  workflow_call:
+    inputs:
+      url:
+        required: true
+        type: string
+
+      config-path:
+        required: false
+        type: string
+        default: ""
+
+      tester-ref:
+        required: false
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  initialize:
+    name: Initialize WCAG audit
+    runs-on: ubuntu-latest
+
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      count: ${{ steps.matrix.outputs.count }}
+
+    steps:
+      - name: Checkout consumer repository
+        uses: actions/checkout@v4
+        with:
+          path: consumer
+          persist-credentials: false
+
+      - name: Checkout WCAG Tester
+        uses: actions/checkout@v4
+        with:
+          repository: toon-van-berkel/toons-wcag-tester
+          ref: ${{ inputs.tester-ref }}
+          path: tester
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.10.0
+          package_json_file: tester/package.json
+
+      - name: Install dependencies
+        working-directory: tester
+        run: pnpm install --frozen-lockfile
+
+      - name: Build tester
+        working-directory: tester
+        run: pnpm build
+
+      - name: Generate category matrix
+        id: matrix
+        working-directory: consumer
+        env:
+          CONFIG_PATH: ${{ inputs.config-path }}
+        run: |
+          MATRIX=$(node ../tester/dist/cli/matrix.js "$CONFIG_PATH")
+
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$(echo "$MATRIX" | jq '.include | length')" >> "$GITHUB_OUTPUT"
+
+  audit:
+    name: ${{ matrix.id }} — ${{ matrix.name }}
+
+    needs: initialize
+
+    if: ${{ needs.initialize.outputs.count != '0' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.initialize.outputs.matrix) }}
+
+    steps:
+      - name: Checkout consumer repository
+        uses: actions/checkout@v4
+        with:
+          path: consumer
+          persist-credentials: false
+
+      - name: Checkout WCAG Tester
+        uses: actions/checkout@v4
+        with:
+          repository: toon-van-berkel/toons-wcag-tester
+          ref: ${{ inputs.tester-ref }}
+          path: tester
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.10.0
+          package_json_file: tester/package.json
+
+      - name: Install dependencies
+        working-directory: tester
+        run: pnpm install --frozen-lockfile
+
+      - name: Build tester
+        working-directory: tester
+        run: pnpm build
+
+      - name: Run WCAG category
+        working-directory: consumer
+        env:
+          WEBSITE_URL: ${{ inputs.url }}
+          CONFIG_PATH: ${{ inputs.config-path }}
+          CATEGORY: ${{ matrix.category }}
+        run: |
+          ARGS=(
+            --url "$WEBSITE_URL"
+            --category "$CATEGORY"
+            --output reports
+          )
+
+          if [ -n "$CONFIG_PATH" ]; then
+            ARGS+=(--config "$CONFIG_PATH")
+          fi
+
+          node ../tester/dist/index.js "${ARGS[@]}"
+
+      - name: Generate job summary
+        if: ${{ !cancelled() }}
+        env:
+          CATEGORY: ${{ matrix.category }}
+          CATEGORY_NAME: ${{ matrix.name }}
+        run: |
+          REPORT="consumer/reports/$CATEGORY.json"
+
+          {
+            echo "# $CATEGORY_NAME"
+            echo ""
+
+            if [ -f "$REPORT" ]; then
+              STATUS=$(jq -r '.status' "$REPORT")
+
+              echo "**Status:** $STATUS"
+              echo ""
+              echo "| Criterion | Status |"
+              echo "|---|---|"
+
+              jq -r '.criteria[] |
+                "| \(.criterionId) | \(.status) |"' "$REPORT"
+            else
+              echo "No report was generated."
+            fi
+
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload category report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: wcag-${{ matrix.category }}
+          path: consumer/reports/
+          if-no-files-found: error
+
+  report:
+    name: Generate final report
+
+    needs:
+      - initialize
+      - audit
+
+    if: ${{ !cancelled() }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download category reports
+        if: ${{ needs.initialize.outputs.count != '0' }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wcag-*
+          path: reports
+          merge-multiple: true
+
+      - name: Generate final summary
+        env:
+          AUDIT_STATUS: ${{ needs.audit.result }}
+          INITIALIZE_STATUS: ${{ needs.initialize.result }}
+          EXPECTED_COUNT: ${{ needs.initialize.outputs.count }}
+        run: |
+          {
+            echo "# WCAG 2.2 Accessibility Audit"
+            echo ""
+
+            if [ "$AUDIT_STATUS" = "failure" ]; then
+              echo '![Audit failed](https://raw.githubusercontent.com/toon-van-berkel/toons-wcag-tester/main/assets/failed.svg)'
+              echo ""
+            fi
+
+            echo "| Category | Status |"
+            echo "|---|---|"
+
+            for file in reports/*.json; do
+              [ -f "$file" ] || continue
+
+              jq -r '"| \(.category) | \(.status) |"' "$file"
+            done
+
+            echo ""
+            echo "**Expected category reports:** $EXPECTED_COUNT"
+
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload final reports
+        if: ${{ !cancelled() && needs.initialize.outputs.count != '0' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: wcag-final-report
+          path: reports/
+          if-no-files-found: error
+
+      - name: Evaluate quality gate
+        if: ${{ !cancelled() }}
+        env:
+          AUDIT_STATUS: ${{ needs.audit.result }}
+          INITIALIZE_STATUS: ${{ needs.initialize.result }}
+          EXPECTED_COUNT: ${{ needs.initialize.outputs.count }}
+        run: |
+          if [ "$INITIALIZE_STATUS" != "success" ]; then
+            exit 2
+          fi
+
+          if [ "$EXPECTED_COUNT" = "0" ]; then
+            echo "No categories enabled. Audit skipped."
+            exit 0
+          fi
+
+          if [ "$AUDIT_STATUS" != "success" ]; then
+            exit 1
+          fi

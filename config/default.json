@@ -1,0 +1,29 @@
+{
+    "$schema": "./schema.json",
+    "version": 1,
+    "enabled": true,
+    "target": "AAA",
+    "principles": {
+        "perceivable": true,
+        "operable": true,
+        "understandable": true,
+        "robust": true
+    },
+    "categories": {
+        "text-alternatives": true,
+        "time-based-media": true,
+        "adaptable": true,
+        "distinguishable": true,
+        "keyboard-accessible": true,
+        "enough-time": true,
+        "seizures-and-physical-reactions": true,
+        "navigable": true,
+        "input-modalities": true,
+        "readable": true,
+        "predictable": true,
+        "input-assistance": true,
+        "compatible": true
+    },
+    "criteria": {},
+    "rules": {}
+}

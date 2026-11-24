@@ -1,0 +1,27 @@
+{
+    "name": "toons-wcag-tester",
+    "version": "0.1.0",
+    "description": "Modular WCAG 2.2 accessibility testing framework.",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
+    "scripts": {
+        "dev": "tsx src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "check": "tsc --noEmit",
+        "test": "vitest run",
+        "test:watch": "vitest"
+    },
+    "dependencies": {
+        "ajv": "^8.20.0"
+    },
+    "devDependencies": {
+        "@types/node": "^26.6.6",
+        "tsx": "^4.23.15",
+        "typescript": "^7.0.2",
+        "vitest": "^5.1.1"
+    }
+}

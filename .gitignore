@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+
+# Generated reports
+reports/
+artifacts/
+.wcag-cache/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Operating systems
+.DS_Store
+Thumbs.db
