@@ -2,6 +2,7 @@ name: SVG Rendering Test
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -14,68 +15,9 @@ jobs:
       - name: Intentionally fail
         run: exit 1
 
-      - name: Generate SVG
+      - name: Display failure SVG
         if: failure()
         run: |
-          cat > report.svg <<'EOF'
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="600" height="160" viewBox="0 0 600 160">
-
-            <rect width="600" height="160" rx="12" fill="#0d1117"/>
-            <rect width="6" height="160" rx="3" fill="#f85149"/>
-
-            <text x="30" y="40" fill="#8b949e"
-                  font-size="14" font-family="Arial">
-              QUALITY CONTROL
-            </text>
-
-            <text x="30" y="85" fill="#f85149"
-                  font-size="32" font-family="Arial" font-weight="bold">
-              Workflow Failed
-            </text>
-
-            <text x="30" y="125" fill="#e6edf3"
-                  font-size="16" font-family="Arial">
-              SVG rendering experiment
-            </text>
-
-          </svg>
-          EOF
-
-      - name: Upload SVG
-        if: failure()
-        id: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: svg-report
-          path: report.svg
-
-      - name: Test SVG rendering methods
-        if: failure()
-        env:
-          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
-        run: |
-          {
-            echo "# SVG Rendering Experiment"
-            echo "The workflow failed intentionally."
-
-            echo "## Test 1 - External SVG"
-            echo '![External SVG](https://img.shields.io/badge/Quality_Control-Failed-red.svg)'
-
-            echo "## Test 2 - Local SVG"
-            echo '![Local SVG](report.svg)'
-
-            echo "## Test 3 - Inline SVG"
-            cat report.svg
-            echo
-
-            echo "## Test 4 - Base64 SVG"
-            echo "<img src=\"data:image/svg+xml;base64,$(base64 -w0 report.svg)\">"
-
-            echo "## Test 5 - Artifact URL"
-            echo "![Artifact SVG]($ARTIFACT_URL)"
-
-            echo "## Download"
-            echo "[Download generated SVG artifact]($ARTIFACT_URL)"
-
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo '# WCAG Test Results' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '![WCAG Failed](https://raw.githubusercontent.com/toon-van-berkel/toons-wcag-tester/main/assets/failed.svg)' >> "$GITHUB_STEP_SUMMARY"
