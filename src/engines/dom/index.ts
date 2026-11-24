@@ -6,3 +6,5 @@ export * from "./visibility.js";
 export * from "./styles.js";
 export * from "./context.js";
 export * from "./frame.js";
+export * from "./shadow.js";
+export * from "./snapshot.js";

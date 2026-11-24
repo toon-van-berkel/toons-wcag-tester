@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="UTF-8">
+        <title>WCAG DOM Integration Fixture</title>
+
+        <base href="https://example.com/">
+
+        <style>
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                font-size: 16px;
+                color: #222222;
+                background: #ffffff;
+            }
+
+            header,
+            main,
+            footer {
+                padding: 16px;
+            }
+
+            img {
+                display: block;
+                width: 120px;
+                height: 60px;
+            }
+
+            #hidden-image {
+                display: none;
+            }
+
+            #transparent-image {
+                opacity: 0;
+            }
+
+            #offscreen-image {
+                position: absolute;
+                top: 0;
+                left: -10000px;
+            }
+
+            #generated-icon::before {
+                content: "";
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                background-image: linear-gradient(
+                    red,
+                    blue
+                );
+            }
+
+            #responsive-text {
+                font-size: 24px;
+                line-height: 1.5;
+            }
+
+            @media (max-width: 600px) {
+                #responsive-text {
+                    font-size: 16px;
+                }
+            }
+
+            iframe {
+                width: 320px;
+                height: 180px;
+                border: 1px solid #cccccc;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header id="site-header">
+            <nav aria-label="Main navigation">
+                <a href="/">Home</a>
+                <a href="/projects">Projects</a>
+                <a href="/contact">Contact</a>
+            </nav>
+        </header>
+
+        <main id="main-content">
+            <h1>Integration test website</h1>
+
+            <section
+                id="projects"
+                aria-label="Featured projects"
+            >
+                <h2 id="projects-heading">
+                    Featured projects
+                </h2>
+
+                <figure id="project-figure">
+                    <a
+                        id="project-link"
+                        href="/projects/example"
+                    >
+                        <img
+                            id="shared-image"
+                            alt="Main project preview"
+                        >
+                    </a>
+
+                    <figcaption>
+                        Example project caption
+                    </figcaption>
+                </figure>
+
+                <img
+                    id="hidden-image"
+                    alt="Hidden image"
+                >
+
+                <img
+                    id="transparent-image"
+                    alt="Transparent image"
+                >
+
+                <img
+                    id="offscreen-image"
+                    alt="Offscreen image"
+                >
+
+                <button id="generated-icon">
+                    Download
+                </button>
+
+                <p id="responsive-text">
+                    Responsive typography example.
+                </p>
+            </section>
+
+            <section id="components">
+                <h2>Web components</h2>
+
+                <div id="component-one"></div>
+
+                <div id="component-two"></div>
+
+                <div id="slot-host">
+                    <img
+                        id="slotted-image"
+                        slot="preview"
+                        alt="Slotted image"
+                    >
+                </div>
+
+                <div id="closed-host"></div>
+            </section>
+
+            <section id="contact">
+                <h2>Contact information</h2>
+
+                <form aria-label="Contact form">
+                    <fieldset>
+                        <legend>Personal details</legend>
+
+                        <label for="email">
+                            Email address
+                        </label>
+
+                        <input
+                            id="email"
+                            type="email"
+                        >
+
+                        <button type="submit">
+                            Send
+                        </button>
+                    </fieldset>
+                </form>
+            </section>
+
+            <section id="embedded-content">
+                <h2>Embedded content</h2>
+
+                <iframe
+                    id="embedded-frame"
+                    name="embedded"
+                    title="Embedded project"
+                    srcdoc="
+                        <!DOCTYPE html>
+                        <html lang='nl'>
+                            <head>
+                                <title>Embedded document</title>
+                            </head>
+
+                            <body>
+                                <h2>Embedded project</h2>
+
+                                <img
+                                    id='shared-image'
+                                    alt='Embedded image'
+                                >
+
+                                <div id='embedded-host'></div>
+                            </body>
+                        </html>
+                    "
+                ></iframe>
+            </section>
+        </main>
+
+        <footer id="site-footer">
+            Integration test footer
+        </footer>
+    </body>
+</html>
